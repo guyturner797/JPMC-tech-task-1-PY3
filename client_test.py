@@ -22,13 +22,29 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(getDataPoint(quote), (quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2))
 
   """ ------------ Add more unit tests ------------ """
-  # Test to ensure correct ratio is calculated for normal data
-  def test_getRatio_CalculateRatio(self):
-      self.assertEqual(getRatio(12.0, 6.0), 2.0)
+  # Test to ensure ratio is determined as 1 for equally priced stocks
+  def test_getRatio_Equal1(self):
+      price_a = 110.0
+      price_b = 110.0
+      self.assertEqual(getRatio(price_a, price_b), 1)
+
+  # Test to ensure ratio is > 1 when price a is greater than price b
+  def test_getRatio_GreaterThan1(self):
+      price_a = 110.0
+      price_b = 90.0
+      self.assertGreater(getRatio(price_a, price_b), 1)
+
+  # Test to ensure ratio is < 1 when price a is less than price b
+  def test_getRatio_LessThan1(self):
+      price_a = 90.0
+      price_b = 110.0
+      self.assertLess(getRatio(price_a, price_b), 1)
 
   # Test to ensure when A price is 0 a ratio of 0 is returned
   def test_getRatio_AZero(self):
-      self.assertEqual(getRatio(0, 119.2), 0)
+      price_a = 0.0
+      price_b = 119.2
+      self.assertEqual(getRatio(price_a, price_b), 0)
 
   # Test to ensure when B price is 0 a ZeroDivisionError is not raised
   def test_getRatio_BZero(self):

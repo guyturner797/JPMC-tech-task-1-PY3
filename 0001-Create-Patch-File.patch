@@ -1,0 +1,152 @@
+From 9f7a23facf0d8f0e668683de32dfe5d8386535e5 Mon Sep 17 00:00:00 2001
+From: Guy Turner <guyturner797@gmail.com>
+Date: Sun, 7 Jun 2020 19:36:45 +0100
+Subject: [PATCH] Create Patch File
+
+---
+ __pycache__/client3.cpython-36.pyc | Bin 0 -> 1125 bytes
+ client3.py                         |  13 +++++++++----
+ client_test.py                     |  18 ++++++++++++++++--
+ server3.py                         |   4 ++--
+ 4 files changed, 27 insertions(+), 8 deletions(-)
+ create mode 100644 __pycache__/client3.cpython-36.pyc
+
+diff --git a/__pycache__/client3.cpython-36.pyc b/__pycache__/client3.cpython-36.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6883d2cbca5a9c3a10eaeea7c7320e1d75a354d
+GIT binary patch
+literal 1125
+zcmYjQOK%%D5GHrItCcLdiQj52Y=NK^8pR2W0EUpJY3$TRff~-E2tp`btd=8t<<+jt
+zrHWXUPwKIMq<^M|9trf+Q|>+W)FI^rAu%s<b~y9R>|U$YsJegu{8fXHf5=BGLj5sP
+z^%pWpB+ZGSPI|&~(igsyOfcz*K>8w-Oa{LZQInypp^Ts|qjOLF`Sy2czzT#5x}b;T
+z&0I9WAGLsvR!5&eFuDP3#1_Qfj&52h)-od2-|oX2dfyWpP=k#H?K80{w#2sBfgM<f
+z&4&cqvJRWD1>3MQWLx+pB^UEo_PhZRtjm=)LEdbWg?D{>{0eJ%K{~B>SQj~-eRihx
+zq_?}9muZrpm6h)8-`jt%docxd`AsIj{`D&RmlBd9xfLL1NC!yOV`OuT*Ctm~Tg__|
+z>Emnk%5ygRVEc1#?r#$r+#*+OPOUX(Lx!1zvmQTDrJSa~lRW3;kn1zx1%L#}e@XHw
+zR9u(*6bev@Mkg*4olMHC(A)%-F4J>U)8!-{WYPo^m8Gz>lj{7PhbeZb35I!@=uTjQ
+zi)pDr*<(}358|bN9etOoveo@T)C!9K9zE&xkEWOW<y7J0{lhYyj-k+1|0vVnPY3-U
+zPJTS-YDmwz8Uu9icPE#7{WQ<eXYcOh(lk#&A7Zj6E?JCN;hYiTNAw2nCRHu8Qk#rj
+zR$6k{ZlE%!lH&X{rS}5Sozq(c@$zS%^CQq4vB*k`ma8C6cv8q~eZZCN*Rd<2<B8g}
+z%X?+uE|#o`jwZr9pWApHw5kvpVUfqET6MQ^JWjGAj%Qyyv*<~FyW)xFUm||J+tnS8
+zwL9saL9H{3Tr~7E{<lvKjDPs_yUwR#b*l0_8{AcZ^HpgPE^WhfHU_~)RauBoVIAdI
+z1kZkY`uw$_#}1<pi4@5g;@GeZn`i>`Jq1H!6JUE~C2H>@*D!K9fx?8tQjHUBn1V!_
+z&~?8Oq06*V_Ahs{pz2n$&2jyAV^rvmV6x+&mRLO;<FMxNXcLbrjx3^X`^;xvRF4{w
+Pzec&wXajp3(H-x9&M_VR
+
+literal 0
+HcmV?d00001
+
+diff --git a/client3.py b/client3.py
+index f1771c3..9a98cc2 100644
+--- a/client3.py
++++ b/client3.py
+@@ -24,7 +24,7 @@ import json
+ import random
+ 
+ # Server API URLs
+-QUERY = "http://localhost:8080/query?id={}"
++QUERY = "http://localhost:8085/query?id={}"
+ 
+ # 500 server request
+ N = 500
+@@ -35,14 +35,17 @@ def getDataPoint(quote):
+ 	stock = quote['stock']
+ 	bid_price = float(quote['top_bid']['price'])
+ 	ask_price = float(quote['top_ask']['price'])
+-	price = bid_price
++	price = (bid_price+ask_price)/2
+ 	return stock, bid_price, ask_price, price
+ 
+ def getRatio(price_a, price_b):
+ 	""" Get ratio of price_a and price_b """
+ 	""" ------------- Update this function ------------- """
+ 	""" Also create some unit tests for this function in client_test.py """
+-	return 1
++	if price_b == 0:
++		# prevents a zero division error if price of stock b is 0
++		return
++	return price_a/price_b
+ 
+ # Main
+ if __name__ == "__main__":
+@@ -52,8 +55,10 @@ if __name__ == "__main__":
+ 		quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+ 		""" ----------- Update to get the ratio --------------- """
++		prices = {}  # Stores current price of stocks ABC and DEF
+ 		for quote in quotes:
+ 			stock, bid_price, ask_price, price = getDataPoint(quote)
++			prices[stock] = price
+ 			print ("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+-		print ("Ratio %s" % getRatio(price, price))
++		print ("Ratio %s" % getRatio(prices['ABC'], prices['DEF']))
+diff --git a/client_test.py b/client_test.py
+index af2bf26..0def1ce 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -1,5 +1,5 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -8,6 +8,8 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
++    for quote in quotes:
++        self.assertEqual(getDataPoint(quote), (quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2))
+ 
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+@@ -15,10 +17,22 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
+-
++    for quote in quotes:
++        print(getDataPoint(quote))
++        self.assertEqual(getDataPoint(quote), (quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2))
+ 
+   """ ------------ Add more unit tests ------------ """
++  # Test to ensure correct ratio is calculated for normal data
++  def test_getRatio_CalculateRatio(self):
++      self.assertEqual(getRatio(12.0, 6.0), 2.0)
++
++  # Test to ensure when A price is 0 a ratio of 0 is returned
++  def test_getRatio_AZero(self):
++      self.assertEqual(getRatio(0, 119.2), 0)
+ 
++  # Test to ensure when B price is 0 a ZeroDivisionError is not raised
++  def test_getRatio_BZero(self):
++      self.assertIsNone(getRatio(119.2, 0))
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/server3.py b/server3.py
+index 2de4e28..1d59866 100644
+--- a/server3.py
++++ b/server3.py
+@@ -202,7 +202,7 @@ def get(req_handler, routes):
+                 req_handler.wfile.write(bytes(data,  encoding = 'utf-8'))
+                 return
+ 
+-def run(routes, host = '0.0.0.0', port = 8080):
++def run(routes, host = '0.0.0.0', port = 8085):
+     """ Runs a class as a server whose methods have been decorated with
+         @route.
+     """
+@@ -215,7 +215,7 @@ def run(routes, host = '0.0.0.0', port = 8080):
+     thread = threading.Thread(target = server.serve_forever)
+     thread.daemon = True
+     thread.start()
+-    print ('HTTP server started on port 8080')
++    print ('HTTP server started on port 8085')
+     while True:
+         from time import sleep
+         sleep(1)
+-- 
+2.16.2.windows.1
+
